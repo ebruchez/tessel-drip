@@ -1,0 +1,17 @@
+{
+  "name": "tessel-drip",
+  "version": "1.0-SNAPSHOT.0",
+  "description": "Drip irrigation controller for Tessel 2 in Scala",
+  "main": "index.js",
+  "repository": "https://github.com/ebruchez/tessel-drip",
+  "keywords": [
+    "Tessel",
+    "Scala"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "node-fetch": "^1.5.1",
+    "node-schedule": "^1.1.0",
+    "relay-mono": "^0.1.3"
+  }
+}
