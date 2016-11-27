@@ -31,8 +31,24 @@ object Relay {
   case object Channel1 extends { val value = 1 } with Channel
   case object Channel2 extends { val value = 2 } with Channel
 
+  def useF(port: Port): Future[Relay] = {
+    val p = Promise[Relay]()
+    RelayMono.use(port, (err: Error, relay: Relay) ⇒ {
+
+      if (! js.isUndefined(err) && (err ne null)) {
+        p.failure(new RuntimeException(err.message))
+      } else {
+        p.success(relay)
+      }
+    })
+
+    p.future
+  }
+
   implicit class RelayOps(val relay: Relay) extends AnyVal {
 
+    // NOTE: The `ready` event is dispatched by `use()` with `setImmediate()`. If this is not called immediately after
+    // calling `use()`, then `onReadyF` will block forever. So use with caution and prefer using `useF()` above.
     def onReadyF(): Future[Unit] = {
       val p = Promise[Unit]()
       relay.on("ready", (err: Error) ⇒ {
