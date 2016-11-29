@@ -29,11 +29,11 @@ object DripApp extends js.JSApp {
   case class WeatherDetails(highC: Double, lowC: Double, willRain: Boolean)
 
   sealed trait DripAction { val name: String }
-  case object OnAction      extends { val name = "on"  }     with DripAction
-  case object OffAction     extends { val name = "off" }     with DripAction
-  case object SkipAction    extends { val name = "skip" }    with DripAction
+  case object OnAction      extends { val name = "on"      } with DripAction
+  case object OffAction     extends { val name = "off"     } with DripAction
+  case object SkipAction    extends { val name = "skip"    } with DripAction
   case object WeatherAction extends { val name = "weather" } with DripAction
-  case object StatusAction  extends { val name = "status" }  with DripAction
+  case object StatusAction  extends { val name = "status"  } with DripAction
 
   val darkSkyUrl =
     s"https://api.darksky.net/forecast/$DarkSkyKey/$WeatherLatitude,$WeatherLongitude?units=si&exclude=minutely,hourly,alerts,flags"
@@ -119,12 +119,36 @@ object DripApp extends js.JSApp {
 
   def sendHealthStatus() = async {
 
+    if (! js.isUndefined(g.gc))
+      g.gc()
+
     val v8Stats = V8.getHeapStatistics().asInstanceOf[js.Dictionary[Int]].toMap
 
-    // Could also use JSON.stringify()
-    val statsString = v8Stats map { case (k, v) ⇒ s"$k: $v" } mkString ", "
+    val statsString = v8Stats map {
+      case
+        (
+          k @ (
+            "heap_size_limit"            |
+            "total_heap_size"            |
+            "total_physical_size"        |
+            "used_heap_size"             |
+            "total_heap_size_executable" |
+            "total_available_size"
+          ),
+          v
+        ) ⇒
+        // NOTE: No decimal separators show (https://github.com/scala-js/scala-js/issues/1619)
+        // f"$k: $v%,d bytes"
 
-    await(notifyIFTTT(StatusAction, Some(s"V8 stats: $statsString; uptime: ${OS.uptime()}")))
+        def formatInt(value: Int) = value.toString.reverse.grouped(3).to[List].map(_.reverse).reverse mkString ","
+
+        s"$k: ${formatInt(v)} bytes"
+
+      case (k, v) ⇒
+        s"$k: $v"
+    } mkString ", "
+
+    await(notifyIFTTT(StatusAction, Some(s"V8 stats: $statsString; uptime: ${OS.uptime()} seconds")))
   }
 
   def main() = ()
