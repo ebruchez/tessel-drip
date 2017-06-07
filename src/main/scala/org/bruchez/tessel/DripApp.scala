@@ -83,7 +83,8 @@ object DripApp extends js.JSApp {
     await(notifyIFTTT(StatusAction, Some(s"scheduling jobs")))
 
     NodeSchedule.scheduleJob("0 3,15,21 * * *", sendHealthStatus _)
-    NodeSchedule.scheduleJob(js.Dynamic.literal(hour = 12, minute = 0), irrigateProcessCheckWeather _)  // 12:00 GMT which is 5:00 PDT
+    NodeSchedule.scheduleJob(js.Dynamic.literal(hour = 5,  minute = 45), irrigateProcessCheckWeather _)  // TEST
+    NodeSchedule.scheduleJob(js.Dynamic.literal(hour = 12, minute = 0),  irrigateProcessCheckWeather _)  // 12:00 GMT which is 5:00 PDT
   }
 
   def retrieveWeatherDetails(json: js.Dynamic) = {
