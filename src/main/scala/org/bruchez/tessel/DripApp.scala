@@ -112,6 +112,9 @@ object DripApp extends js.JSApp {
   }
 
   def notifyIFTTT(event: DripAction, message: Option[String]) = async {
+
+    println(s"calling IFTTT for `$event`: $message")
+
     await(NodeFetch(notificationUrl(event.name, message), null).toFuture.toTry) match {
       case Success(res) ⇒ println(s"got response from IFTTT: ${res.status}")
       case Failure(t)   ⇒ println(s"failure calling IFTTT: ${t.getMessage}")
