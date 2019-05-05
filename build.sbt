@@ -5,6 +5,9 @@ name := "tessel-drip"
 
 version := "1.0-SNAPSHOT"
 
+version in webpack := "4.8.1"
+version in startWebpackDevServer := "3.1.4"
+
 scalaVersion := "2.11.8"
 
 libraryDependencies        += "org.scala-js"           %%% "scalajs-dom"     % "0.9.0"
@@ -17,6 +20,8 @@ npmDependencies in Compile += "relay-mono"    → "0.1.3"
 
 scalaJSModuleKind          := ModuleKind.CommonJSModule
 webpackConfigFile          := Some(baseDirectory.value / "tessel.webpack.config.js")
+
+scalaJSUseMainModuleInitializer := true
 
 def getApiKey(name: String) = Option(System.getenv(name)) getOrElse (throw new RuntimeException(s"missing environment variable $name"))
 
