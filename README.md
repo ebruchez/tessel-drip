@@ -3,7 +3,7 @@
 ## Compiling and running
 
 - `sbt fullOptJS::webpack`
-- `t2 run --name MyTessel --compress=false target/scala-2.11/tessel-drip-opt-bundle.js`
+- `cp target/scala-2.11/scalajs-bundler/main/tessel-drip-opt-bundle.js . && t2 push --loglevel debug --name Vega --full --compress=false tessel-drip-opt-bundle.js`
 
 ## Status
 
