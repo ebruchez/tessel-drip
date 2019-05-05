@@ -23,7 +23,8 @@ webpackConfigFile          := Some(baseDirectory.value / "tessel.webpack.config.
 
 scalaJSUseMainModuleInitializer := true
 
-def getApiKey(name: String) = Option(System.getenv(name)) getOrElse (throw new RuntimeException(s"missing environment variable $name"))
+def getApiKey(name: String): String = 
+  Option(System.getenv(name)) getOrElse (throw new RuntimeException(s"missing environment variable $name"))
 
 buildInfoKeys              := Nil
 buildInfoKeys              += BuildInfoKey.action("IFTTTKey")(getApiKey("TESSEL_IFTTT_KEY"))

@@ -13,21 +13,25 @@ import scala.util.{Failure, Success, Try}
 //noinspection TypeAnnotation
 object DripApp {
 
-  val GmtHourToIrrigate   = 12 // 12:00 GMT which is 5:00 PDT
+  val AppVersion          = 2
+
+  val GmtHourToIrrigate   = 5
   val GmtMinuteToIrrigate = 0
 
-  val IrrigationDuration = 5.minutes
-  val RainThresholdMm    = 10
+  val IrrigationDuration  = 5.minutes
+  val RainThresholdMm     = 10
 
-  val IFTTTKey           = APIKeys.IFTTTKey
-  val DarkSkyKey         = APIKeys.DarkSkyKey // https://darksky.net/dev/account
+  val GmtOffsetHours      = 7 // 12:00 GMT which is 5:00 PDT
 
-  val WeatherLatitude    = 37.5606821
-  val WeatherLongitude   = -122.2518543
+  val IFTTTKey            = APIKeys.IFTTTKey
+  val DarkSkyKey          = APIKeys.DarkSkyKey // https://darksky.net/dev/account
 
-  val RelayChannel       = Relay.Channel2
-  val LedChannel         = 2
-  val IFTTTEventName     = "DripEvent"
+  val WeatherLatitude     = 37.5606821
+  val WeatherLongitude    = -122.2518543
+
+  val RelayChannel        = Relay.Channel2
+  val LedChannel          = 2
+  val IFTTTEventName      = "DripEvent"
 
   case class WeatherDetails(highC: Double, lowC: Double, willRain: Boolean)
 
@@ -46,13 +50,18 @@ object DripApp {
 
   def main(args: Array[String]): Unit = {
 
-    println(s"starting drip irrigation system")
+    println(s"starting drip irrigation system version $AppVersion")
 
     async {
 
       LEDBlinker.start()
 
-      await(notifyIFTTT(StatusAction, Some(s"starting Tessel ${OS.hostname()} at ${new js.Date()} with node version ${g.process.version}")))
+      await(
+        notifyIFTTT(
+          StatusAction,
+          Some(s"starting drip irrigation system version $AppVersion on Tessel ${OS.hostname()} at ${new js.Date()} with node version ${g.process.version}")
+        )
+      )
       await(sendHealthStatus())
 
       val relay = await(Relay.useF(Tessel.port.A))
@@ -91,7 +100,7 @@ object DripApp {
 
       NodeSchedule.scheduleJob("0 3,15,21 * * *", sendHealthStatus _)
       NodeSchedule.scheduleJob(
-        js.Dynamic.literal(hour = GmtHourToIrrigate, minute = GmtMinuteToIrrigate),
+        js.Dynamic.literal(hour = GmtHourToIrrigate + GmtOffsetHours, minute = GmtMinuteToIrrigate),
         irrigateProcessCheckWeather _
       )
     }
