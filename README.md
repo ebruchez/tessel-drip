@@ -9,7 +9,7 @@
 
 - turn valve on/off once a day at fixed time
 - use Dark Sky weather service and skip if rain
-- Use BuildInfo to externalize API keys
+- use BuildInfo to externalize API keys
 - use `ScalaJSBundlerPlugin`
 - use `async` / `await`
 - no external configuration of the schedule yet
