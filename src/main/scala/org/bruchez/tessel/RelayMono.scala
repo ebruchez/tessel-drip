@@ -18,7 +18,7 @@ object RelayMono extends js.Object {
 
 @js.native
 trait Relay extends js.Object with EventEmitter {
-  def setState(channel: Int, state: Boolean, callback: js.Function2[Error, Boolean, _] = null): Unit = js.native
+  def setState(channel: Int, state: Boolean, callback: js.Function2[Error, js.UndefOr[Boolean], _] = null): Unit = js.native
   def turnOn  (channel: Int, delay: Int,     callback: js.Function2[Error, Boolean, _] = null): Unit = js.native
   def turnOff (channel: Int, delay: Int,     callback: js.Function2[Error, Boolean, _] = null): Unit = js.native
   def toggle  (channel: Int,                 callback: js.Function2[Error, Boolean, _] = null): Unit = js.native
@@ -69,11 +69,12 @@ object Relay {
 
       val p = Promise[OnOff]()
 
-      relay.setState(channel.value, state.value, (err: Error, state: Boolean) ⇒ {
+      // Unclear why the state passed can be `undefined` at times
+      relay.setState(channel.value, state.value, (err: Error, state: js.UndefOr[Boolean]) ⇒ {
         if (! js.isUndefined(err))
           p.failure(new RuntimeException(err.message))
         else
-          p.success(OnOff.fromBoolean(state))
+          p.success(state.toOption map OnOff.fromBoolean getOrElse Off)
       })
 
       p.future
