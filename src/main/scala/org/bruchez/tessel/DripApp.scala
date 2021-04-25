@@ -13,8 +13,21 @@ import scala.util.{Failure, Success, Try}
 //noinspection TypeAnnotation
 object DripApp extends js.JSApp {
 
-  val IrrigationDuration = 5.minutes
+  val IrrigationDuration = 10.minutes
   val RainThresholdMm    = 10
+
+  val Test = false
+
+  val ProdHourUtc            = 12  // 12:00 GMT which is 5:00 UTC
+  val ProdMinuteUtc          = 0
+
+  val TestHourUtc            = 20
+  val TestMinuteUtc          = 14
+
+  val HourUtc   = if (Test) TestHourUtc   else ProdHourUtc
+  val MinuteUtc = if (Test) TestMinuteUtc else ProdMinuteUtc
+
+  val HealthStatusCron = "0 3,15,21 * * *"
 
   val IFTTTKey           = APIKeys.IFTTTKey
   val DarkSkyKey         = APIKeys.DarkSkyKey // https://darksky.net/dev/account
@@ -80,11 +93,20 @@ object DripApp extends js.JSApp {
     }
 
     await(toggleRelayAndLed(Off))
-    await(notifyIFTTT(StatusAction, Some(s"scheduling jobs")))
 
-    NodeSchedule.scheduleJob("0 3,15,21 * * *", sendHealthStatus _)
-    NodeSchedule.scheduleJob(js.Dynamic.literal(hour = 5,  minute = 45), irrigateProcessCheckWeather _)  // TEST
-    NodeSchedule.scheduleJob(js.Dynamic.literal(hour = 12, minute = 0),  irrigateProcessCheckWeather _)  // 12:00 GMT which is 5:00 PDT
+    def pad2(i: Int) =
+      if (i < 10)
+        "0" + i
+      else
+        i.toString
+
+    def timeString(hours: Int, minutes: Int) =
+      s"${pad2(hours)}:${pad2(minutes)} UTC"
+
+    await(notifyIFTTT(StatusAction, Some(s"scheduling jobs: health status (`$HealthStatusCron`); irrigation (${timeString(HourUtc, MinuteUtc)})")))
+
+    NodeSchedule.scheduleJob(HealthStatusCron, sendHealthStatus _)
+    NodeSchedule.scheduleJob(js.Dynamic.literal(hour = HourUtc, minute = MinuteUtc),  irrigateProcessCheckWeather _)
   }
 
   def retrieveWeatherDetails(json: js.Dynamic) = {
