@@ -9,10 +9,10 @@ object LEDBlinker {
   private var ledOn = false
   private var handle: Option[SetIntervalHandle] = None
 
-  def start(): Unit = {
+  def start(interval: FiniteDuration): Unit = {
     if (handle.isEmpty)
       handle = Some(
-        js.timers.setInterval(1.second) {
+        js.timers.setInterval(interval) {
           if (ledOn)
             Tessel.led(3).off()
           else

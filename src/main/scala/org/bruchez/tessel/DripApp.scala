@@ -29,6 +29,9 @@ object DripApp extends js.JSApp {
 
   val HealthStatusCron = "0 3,15,21 * * *"
 
+  val OffBlinkInterval   = 1.second
+  val OnBlinkInterval    = 250.millis
+
   val IFTTTKey           = APIKeys.IFTTTKey
   val DarkSkyKey         = APIKeys.DarkSkyKey // https://darksky.net/dev/account
 
@@ -56,7 +59,7 @@ object DripApp extends js.JSApp {
 
   async {
 
-    LEDBlinker.start()
+    LEDBlinker.start(OffBlinkInterval)
 
     await(notifyIFTTT(StatusAction, Some(s"starting Tessel ${OS.hostname()} at ${new js.Date()} with node version ${g.process.version}")))
     await(sendHealthStatus())
@@ -72,10 +75,18 @@ object DripApp extends js.JSApp {
     }
 
     def irrigateProcess(reason: String) = async {
+
+      LEDBlinker.stop()
+      LEDBlinker.start(OnBlinkInterval)
+
       await(toggleRelayAndLed(On))
       await(notifyIFTTT(OnAction, Some(s"for duration $IrrigationDuration because $reason")))
       await(delay(IrrigationDuration))
       await(toggleRelayAndLed(Off))
+
+      LEDBlinker.stop()
+      LEDBlinker.start(OffBlinkInterval)
+
       await(notifyIFTTT(OffAction, None))
     }
 
